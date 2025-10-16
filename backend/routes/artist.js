@@ -1,20 +1,21 @@
 import express from "express";
-import { postgres } from "../utils/db.js"; // your Postgres connection
+import { postgres } from "../utils/db.js";
+import { formatDate } from "../utils/parser.js";
 
 const router = express.Router();
 
 /**
  * @swagger
- * /artist:
+ * /artists:
  *   get:
  *     summary: Search for artists by name
- *     description: Returns a list of artists from the local database whose names match the query.
+ *     description: Returns a list of artists from the  database whose names match the query.
  *     parameters:
  *       - in: query
  *         name: name
  *         schema:
  *           type: string
- *         required: true
+ *         required: false
  *         description: The name of the artist to search for (case-insensitive, partial match allowed)
  *     responses:
  *       200:
@@ -66,27 +67,54 @@ const router = express.Router();
  *                   type: string
  *                   example: "Internal Server Error"
  */
-router.get("/artist", async (req, res) => {
+router.get("/artists", async (req, res) => {
   const { name } = req.query;
-  if (!name) {
-    return res.status(400).send("Missing 'name' query parameter");
-  }
-
+  let result;
   try {
-    const result = await postgres.query(
-      `SELECT id, mbid, name 
-       FROM artists 
-       WHERE LOWER(name) LIKE $1`,
-      [`%${name.toLowerCase()}%`]
-    );
+    if (!name) {
+      result = await postgres.query(
+        `SELECT id, mbid, name
+         FROM artists`
+      );
+    } else {
+      result = await postgres.query(
+        `SELECT id, mbid, name
+         FROM artists
+         WHERE LOWER(name) LIKE $1`,
+        [`%${name.toLowerCase()}%`]
+      );
+    }
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: "No artists found" });
+      return res.status(404).json(result.rows);
     }
 
     res.json(result.rows);
   } catch (error) {
     console.error("Error fetching artists from DB:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+router.get("/artist", async (req, res) => {
+  const { id } = req.query;
+  console.log(id);
+
+  try {
+    const result = await postgres.query(
+      `SELECT id, mbid, name
+       FROM artists
+       WHERE id = $1`,
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Artist not found" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error("Error fetching artist from DB:", error);
     res.status(500).send("Internal Server Error");
   }
 });
@@ -243,7 +271,7 @@ router.get("/discography", async (req, res) => {
  * /artist:
  *   post:
  *     summary: Add a new artist
- *     description: Inserts a new artist into the local database.
+ *     description: Inserts a new artist into the  database.
  *     requestBody:
  *       required: true
  *       content:
@@ -326,9 +354,10 @@ router.post("/artist", async (req, res) => {
     if (existing.rows.length > 0) {
       return res.status(409).json({ message: "Artist already exists" });
     }
-    result = await postgres.query(
-      `INSERT INTO artists (name) VALUES ($1) RETURNING *`,
-      [name]
+    const result = await postgres.query(
+      `INSERT INTO artists (name, country, founded, disbanded) 
+       VALUES ($1, $2, $3, $4) RETURNING *`,
+      [name, country, formatDate(founded), formatDate(disbanded)]
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
@@ -339,10 +368,18 @@ router.post("/artist", async (req, res) => {
 
 /**
  * @swagger
- * /artist/{id}:
+ * /artist:
  *   patch:
  *     summary: Update an existing artist
- *     description: Updates an existing artist in the local database.
+ *     description: Updates artist details by ID. The field `name` is required.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID of the artist to update
+ *         schema:
+ *           type: integer
+ *           example: 1
  *     requestBody:
  *       required: true
  *       content:
@@ -352,20 +389,20 @@ router.post("/artist", async (req, res) => {
  *             properties:
  *               name:
  *                 type: string
- *                 example: "New Artist"
+ *                 example: "Updated Artist Name"
  *               country:
  *                 type: string
- *                 example: "LT"
+ *                 example: "USA"
  *               founded:
  *                 type: string
  *                 format: date
- *                 example: "2000-01-01"
+ *                 example: "1995-01-01"
  *               disbanded:
  *                 type: string
  *                 format: date
- *                 example: "2010-01-01"
+ *                 example: "2005-01-01"
  *     responses:
- *       201:
+ *       200:
  *         description: Artist updated successfully
  *         content:
  *           application/json:
@@ -374,25 +411,21 @@ router.post("/artist", async (req, res) => {
  *               properties:
  *                 id:
  *                   type: integer
- *                   example: 2
- *                 mbid:
- *                   type: string
- *                   example: null
+ *                   example: 1
  *                 name:
  *                   type: string
- *                   example: "New Artist"
+ *                   example: "Updated Artist Name"
  *                 country:
  *                   type: string
- *                   example: "LT"
+ *                   example: "USA"
  *                 founded:
- *                  type: string
- *                  format: date
- *                  example: "2000-01-01"
+ *                   type: string
+ *                   format: date
+ *                   example: "1995-01-01"
  *                 disbanded:
- *                  type: string
- *                  format: date
- *                  example: "2010-01-01"
- *
+ *                   type: string
+ *                   format: date
+ *                   example: "2005-01-01"
  *       400:
  *         description: Missing 'name' in request body
  *         content:
@@ -424,6 +457,7 @@ router.post("/artist", async (req, res) => {
  *                   type: string
  *                   example: "Internal Server Error"
  */
+
 router.patch("/artist/:id", async (req, res) => {
   const { id } = req.params;
   const { name, country, founded, disbanded } = req.body;
@@ -454,10 +488,10 @@ router.patch("/artist/:id", async (req, res) => {
 
 /**
  * @swagger
- * /artist/{id}:
+ * /artist:
  *   delete:
  *     summary: Delete an existing artist
- *     description: Deletes an existing artist along with all their albums and songs from the local database.
+ *     description: Deletes an existing artist along with all their albums and songs from the  database.
  *     parameters:
  *       - in: path
  *         name: id
@@ -524,8 +558,8 @@ router.patch("/artist/:id", async (req, res) => {
  *                   type: string
  *                   example: "Internal Server Error"
  */
-router.delete("/artist/:id", async (req, res) => {
-  const { id } = req.params;
+router.delete("/artist", async (req, res) => {
+  const { id } = req.query;
 
   try {
     await postgres.query(
@@ -558,6 +592,69 @@ router.delete("/artist/:id", async (req, res) => {
     console.error("Error deleting artist:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
+});
+
+// http://localhost:3001/api/artist_album?artist_id=45&album_id=365
+router.get("/artist_album", (req, res) => {
+  const { artist_id, album_id } = req.query;
+
+  if (!artist_id && !album_id) {
+    return res.status(400).json({ message: "Missing artist_id or album_id" });
+  }
+
+  const query = `
+    SELECT albums.id as album_id, albums.title as album_title, 
+           albums.release_date, artists.name as artist,
+           songs.id as song_id, songs.title as song_title, songs.track_number
+    FROM albums
+    JOIN artists ON albums.artist_id = artists.id
+    JOIN songs ON songs.album_id = albums.id
+    WHERE ($1::int IS NULL OR albums.artist_id = $1)
+      AND ($2::int IS NULL OR albums.id = $2)
+    ORDER BY albums.release_date, songs.track_number
+  `;
+
+  postgres
+    .query(query, [artist_id || null, album_id || null])
+    .then(async (result) => {
+      const albums = {};
+
+      result.rows.forEach((row) => {
+        if (!albums[row.album_id]) {
+          albums[row.album_id] = {
+            album_id: row.album_id,
+            album_title: row.album_title,
+            release_date: row.release_date,
+            artist: row.artist,
+            songs: [],
+          };
+        }
+
+        albums[row.album_id].songs.push({
+          id: row.song_id,
+          title: row.song_title,
+          track_number: row.track_number,
+        });
+      });
+
+      if (Object.keys(albums).length === 0) {
+        const artistQuery = `SELECT * FROM artists WHERE id = $1`;
+        const artistResult = await postgres.query(artistQuery, [artist_id]);
+
+        if (artistResult.rows.length === 0) {
+          return res.status(404).json({ message: "Artist not found" });
+        }
+
+        return res
+          .status(404)
+          .json({ message: "No albums found for this artist" });
+      }
+      res.json(Object.values(albums));
+    })
+    .catch((error) => {
+      console.error("Error fetching artist albums:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    });
 });
 
 export default router;
