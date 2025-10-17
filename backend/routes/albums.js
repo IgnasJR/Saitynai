@@ -66,8 +66,8 @@ const router = express.Router();
  *               example: "Internal Server Error"
  */
 
-router.get("/album", async (req, res) => {
-  const { id } = req.query;
+router.get("/album/:id", async (req, res) => {
+  const { id } = req.params;
 
   if (!id) {
     return res.status(400).send("Album ID is required");

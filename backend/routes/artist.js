@@ -97,8 +97,8 @@ router.get("/artists", async (req, res) => {
   }
 });
 
-router.get("/artist", async (req, res) => {
-  const { id } = req.query;
+router.get("/artist/:id", async (req, res) => {
+  const { id } = req.params;
   console.log(id);
 
   try {
@@ -488,24 +488,35 @@ router.patch("/artist/:id", async (req, res) => {
     return res.status(401).json({ error: "Authorization header missing" });
   }
 
-  if (!name) {
-    return res.status(400).json({ message: "Missing 'name' in request body" });
-  }
-
   try {
-    const result = await postgres.query(
-      `UPDATE artists 
-       SET name = $1, 
-           country = $2, 
-           founded = $3, 
-           disbanded = $4 
-       WHERE id = $5 
-       RETURNING *`,
-      [name, country, founded, disbanded, id]
-    );
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Artist not found" });
+    const fields = [];
+    const values = [];
+    let idx = 1;
+
+    if (name) {
+      fields.push(`name = $${idx++}`);
+      values.push(name);
     }
+    if (country) {
+      fields.push(`country = $${idx++}`);
+      values.push(country);
+    }
+    if (founded) {
+      fields.push(`founded = $${idx++}`);
+      values.push(founded);
+    }
+    if (disbanded) {
+      fields.push(`disbanded = $${idx++}`);
+      values.push(disbanded);
+    }
+
+    values.push(id);
+
+    const query = `UPDATE artists SET ${fields.join(
+      ", "
+    )} WHERE id = $${idx} RETURNING *`;
+
+    const result = await postgres.query(query, values);
     res.json(result.rows[0]);
   } catch (error) {
     console.error("Error updating artist:", error);

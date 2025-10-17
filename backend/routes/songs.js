@@ -71,8 +71,8 @@ const router = express.Router();
  *               example: "Internal Server Error"
  */
 
-router.get("/song", async (req, res) => {
-  const { id } = req.query;
+router.get("/song/:id", async (req, res) => {
+  const { id } = req.params;
 
   if (!id) {
     return res.status(400).send("Song ID is required");
@@ -353,7 +353,6 @@ router.patch("/song", async (req, res) => {
     ", "
   )} WHERE id = $${idx} RETURNING *`;
 
-  console.log("Update Query:", query);
   try {
     const result = await postgres.query(query, values);
     if (result.rows.length === 0) {
