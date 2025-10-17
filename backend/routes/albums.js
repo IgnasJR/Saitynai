@@ -1,6 +1,7 @@
 import express from "express";
 import { postgres } from "../utils/db.js";
 import { formatDate } from "../utils/parser.js";
+import { verifyToken } from "../utils/auth.js";
 
 const router = express.Router();
 
@@ -156,7 +157,7 @@ router.get("/albums", async (req, res) => {
 
   try {
     const result = await postgres.query(
-      `SELECT albums.id, albums.mbid, albums.title, artists.name as artist
+      `SELECT albums.id, albums.mbid, albums.title, albums.AlbumCoverLink as cover_url, artists.name as artist
        FROM albums 
        JOIN artists ON albums.artist_id = artists.id
        WHERE ($1::text IS NULL OR LOWER(albums.title) LIKE $1) 
@@ -250,10 +251,22 @@ router.get("/albums", async (req, res) => {
 
 router.patch("/album", async (req, res) => {
   const { id } = req.query;
-  let { title, release_date, mbid } = req.body;
+  let { title, release_date } = req.body;
+
+  if (req.headers.authorization) {
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return res.status(401).json({ error: "Invalid or expired token" });
+    } else if (decoded.role !== "admin") {
+      return res.status(403).json({ error: "Insufficient permissions" });
+    }
+  } else {
+    return res.status(401).json({ error: "Authorization header missing" });
+  }
 
   if (!title && !release_date) {
-    return res.status(400).send("No fields to update");
+    return res.status(400).json({ error: "No fields to update" });
   }
 
   const fields = [];
@@ -361,6 +374,18 @@ router.patch("/album", async (req, res) => {
 router.post("/album", async (req, res) => {
   const { title, artist_id, release_date, mbid } = req.body;
 
+  if (req.headers.authorization) {
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return res.status(401).json({ error: "Invalid or expired token" });
+    } else if (decoded.role !== "admin") {
+      return res.status(403).json({ error: "Insufficient permissions" });
+    }
+  } else {
+    return res.status(401).json({ error: "Authorization header missing" });
+  }
+
   if (!title || !artist_id || !release_date) {
     return res.status(400).send("Missing required fields");
   }
@@ -429,7 +454,17 @@ router.post("/album", async (req, res) => {
 router.delete("/album", async (req, res) => {
   const { id } = req.query;
 
-  console.log("Deleting album with ID:", id);
+  if (req.headers.authorization) {
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return res.status(401).json({ error: "Invalid or expired token" });
+    } else if (decoded.role !== "admin") {
+      return res.status(403).json({ error: "Insufficient permissions" });
+    }
+  } else {
+    return res.status(401).json({ error: "Authorization header missing" });
+  }
 
   if (!id) {
     return res.status(400).send("Album ID is required");

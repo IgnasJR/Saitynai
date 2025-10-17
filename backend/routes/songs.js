@@ -1,6 +1,7 @@
 import express from "express";
 import { postgres } from "../utils/db.js"; // your Postgres connection
 import { formatLength } from "../utils/parser.js";
+import { verifyToken } from "../utils/auth.js";
 const router = express.Router();
 
 /**
@@ -314,6 +315,18 @@ router.patch("/song", async (req, res) => {
   const { id } = req.query;
   const { title, length, track_number } = req.body;
 
+  if (req.headers.authorization) {
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return res.status(401).json({ error: "Invalid or expired token" });
+    } else if (decoded.role !== "admin") {
+      return res.status(403).json({ error: "Insufficient permissions" });
+    }
+  } else {
+    return res.status(401).json({ error: "Authorization header missing" });
+  }
+
   if (!title && !length && !track_number) {
     return res.status(400).send("No fields to update");
   }
@@ -432,6 +445,18 @@ router.patch("/song", async (req, res) => {
 router.post("/song", async (req, res) => {
   const { title, album_id, length, track_number, mbid } = req.body;
 
+  if (req.headers.authorization) {
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return res.status(401).json({ error: "Invalid or expired token" });
+    } else if (decoded.role !== "admin") {
+      return res.status(403).json({ error: "Insufficient permissions" });
+    }
+  } else {
+    return res.status(401).json({ error: "Authorization header missing" });
+  }
+
   if (!title || !album_id) {
     return res.status(400).send("Title and album_id are required");
   }
@@ -533,6 +558,19 @@ router.post("/song", async (req, res) => {
 
 router.delete("/song", async (req, res) => {
   const { id } = req.query;
+
+  if (req.headers.authorization) {
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return res.status(401).json({ error: "Invalid or expired token" });
+    } else if (decoded.role !== "admin") {
+      return res.status(403).json({ error: "Insufficient permissions" });
+    }
+  } else {
+    return res.status(401).json({ error: "Authorization header missing" });
+  }
+
   try {
     const result = await postgres.query(
       "DELETE FROM songs WHERE id = $1 RETURNING *",

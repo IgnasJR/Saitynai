@@ -5,8 +5,7 @@ import fetch from "node-fetch";
 import { postgres } from "./utils/db.js";
 
 const HEADERS = {
-  "User-Agent":
-    "TuneFederate/1.0 (https://yourdomain.com contact@yourdomain.com)", // <-- replace
+  "User-Agent": "TuneFederate/1.0 (https://kanapinskas.live)",
   Accept: "application/json",
 };
 
@@ -111,14 +110,17 @@ async function saveArtist(artist) {
 
 async function saveAlbum(album, artistId) {
   const releaseDate = parseReleaseDate(album.date);
+  const coverUrl = await fetchAlbumCover(album.id);
+
   const result = await postgres.query(
-    `INSERT INTO albums(artist_id, mbid, title, release_date)
-     VALUES($1, $2, $3, $4)
+    `INSERT INTO albums(artist_id, mbid, title, release_date, AlbumCoverLink)
+     VALUES($1, $2, $3, $4, $5)
      ON CONFLICT(mbid) DO UPDATE 
        SET title = EXCLUDED.title,
-           release_date = EXCLUDED.release_date
+           release_date = EXCLUDED.release_date,
+           AlbumCoverLink = EXCLUDED.AlbumCoverLink
      RETURNING id`,
-    [artistId, album.id, album.title, releaseDate]
+    [artistId, album.id, album.title, releaseDate, coverUrl]
   );
   return result.rows[0]?.id;
 }
@@ -133,6 +135,18 @@ async function saveSong(song, albumId) {
            track_number = EXCLUDED.track_number`,
     [albumId, song.id, song.title, song.length || null, song.position || null]
   );
+}
+
+async function fetchAlbumCover(releaseMbid) {
+  try {
+    const url = `https://coverartarchive.org/release/${releaseMbid}/front`;
+    const res = await fetch(url, { method: "HEAD" });
+    if (res.ok) return url;
+    return null;
+  } catch (err) {
+    console.warn(`No cover found for release ${releaseMbid}`);
+    return null;
+  }
 }
 
 async function main() {

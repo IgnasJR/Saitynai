@@ -1,6 +1,7 @@
 import express from "express";
 import { postgres } from "../utils/db.js";
 import { formatDate } from "../utils/parser.js";
+import { verifyToken } from "../utils/auth.js";
 
 const router = express.Router();
 
@@ -343,6 +344,19 @@ router.get("/discography", async (req, res) => {
  */
 router.post("/artist", async (req, res) => {
   const { name, country, founded, disbanded } = req.body;
+
+  if (req.headers.authorization) {
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return res.status(401).json({ error: "Invalid or expired token" });
+    } else if (decoded.role !== "admin") {
+      return res.status(403).json({ error: "Insufficient permissions" });
+    }
+  } else {
+    return res.status(401).json({ error: "Authorization header missing" });
+  }
+
   if (!name) {
     return res.status(400).send("Missing 'name' in request body");
   }
@@ -461,6 +475,19 @@ router.post("/artist", async (req, res) => {
 router.patch("/artist/:id", async (req, res) => {
   const { id } = req.params;
   const { name, country, founded, disbanded } = req.body;
+
+  if (req.headers.authorization) {
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return res.status(401).json({ error: "Invalid or expired token" });
+    } else if (decoded.role !== "admin") {
+      return res.status(403).json({ error: "Insufficient permissions" });
+    }
+  } else {
+    return res.status(401).json({ error: "Authorization header missing" });
+  }
+
   if (!name) {
     return res.status(400).json({ message: "Missing 'name' in request body" });
   }
@@ -560,6 +587,18 @@ router.patch("/artist/:id", async (req, res) => {
  */
 router.delete("/artist", async (req, res) => {
   const { id } = req.query;
+
+  if (req.headers.authorization) {
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return res.status(401).json({ error: "Invalid or expired token" });
+    } else if (decoded.role !== "admin") {
+      return res.status(403).json({ error: "Insufficient permissions" });
+    }
+  } else {
+    return res.status(401).json({ error: "Authorization header missing" });
+  }
 
   try {
     await postgres.query(
