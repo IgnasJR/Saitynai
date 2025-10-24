@@ -53,21 +53,24 @@ router.post("/register", async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    const existingUser = await postgres
-      .query("SELECT * FROM users WHERE username = $1", [username])
-      .then((result) => result.rows[0]);
+    const existingUserResult = await postgres.query(
+      "SELECT * FROM users WHERE username = $1",
+      [username]
+    );
+    const existingUser = existingUserResult.rows[0];
 
     if (existingUser) {
       return res.status(409).json({ error: "Username already exists" });
     }
 
     const password_hash = await bcrypt.hash(password, 10);
-    const [newUser] = await postgres
-      .query(
-        "INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id, username",
-        [username, password_hash]
-      )
-      .then((result) => result.rows[0]);
+
+    const result = await postgres.query(
+      "INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id, username",
+      [username, password_hash]
+    );
+
+    const newUser = result.rows[0];
 
     res.status(201).json(newUser);
   } catch (error) {
