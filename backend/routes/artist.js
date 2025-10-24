@@ -347,7 +347,7 @@ router.post("/artist", async (req, res) => {
 
   if (req.headers.authorization) {
     const token = req.headers.authorization.split(" ")[1];
-    const decoded = verifyToken(token);
+    const decoded = await verifyToken(token);
     if (!decoded) {
       return res.status(401).json({ error: "Invalid or expired token" });
     } else if (decoded.role !== "admin") {
@@ -478,11 +478,17 @@ router.patch("/artist/:id", async (req, res) => {
 
   if (req.headers.authorization) {
     const token = req.headers.authorization.split(" ")[1];
-    const decoded = verifyToken(token);
-    if (!decoded) {
-      return res.status(401).json({ error: "Invalid or expired token" });
-    } else if (decoded.role !== "admin") {
-      return res.status(403).json({ error: "Insufficient permissions" });
+    let decoded;
+    try {
+      decoded = await verifyToken(token);
+      if (!decoded) {
+        return res.status(401).json({ error: "Invalid or expired token" });
+      }
+      if (decoded.role !== "admin") {
+        return res.status(403).json({ error: "Insufficient permissions" });
+      }
+    } catch (error) {
+      return res.status(401).json({ error: error.message });
     }
   } else {
     return res.status(401).json({ error: "Authorization header missing" });
@@ -599,16 +605,23 @@ router.patch("/artist/:id", async (req, res) => {
 router.delete("/artist", async (req, res) => {
   const { id } = req.query;
 
-  if (req.headers.authorization) {
-    const token = req.headers.authorization.split(" ")[1];
-    const decoded = verifyToken(token);
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ error: "Authorization header missing" });
+  }
+
+  const token = authHeader.split(" ")[1];
+  let decoded;
+  try {
+    decoded = await verifyToken(token);
     if (!decoded) {
       return res.status(401).json({ error: "Invalid or expired token" });
-    } else if (decoded.role !== "admin") {
+    }
+    if (decoded.role !== "admin") {
       return res.status(403).json({ error: "Insufficient permissions" });
     }
-  } else {
-    return res.status(401).json({ error: "Authorization header missing" });
+  } catch (error) {
+    return res.status(401).json({ error: error.message });
   }
 
   try {
@@ -637,10 +650,12 @@ router.delete("/artist", async (req, res) => {
       return res.status(404).json({ message: "Artist not found" });
     }
 
-    res.status(200).json({ message: "Artist deleted", artist: result.rows[0] });
+    return res
+      .status(200)
+      .json({ message: "Artist deleted successfully", artist: result.rows[0] });
   } catch (error) {
     console.error("Error deleting artist:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 });
 

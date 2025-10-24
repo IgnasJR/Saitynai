@@ -7,7 +7,8 @@ async function searchMusicBrainz(artist, track) {
   const url = `https://musicbrainz.org/ws/2/recording/?query=${query}&fmt=json&limit=5`;
   const response = await fetch(url, {
     headers: {
-      "User-Agent": "AcousticBrainzLookup/1.0 (your-email@example.com)",
+      "User-Agent": "TuneFederate/1.0 (https://kanapinskas.live)",
+      Accept: "application/json",
     },
   });
   const data = await response.json();

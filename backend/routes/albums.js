@@ -255,7 +255,7 @@ router.patch("/album", async (req, res) => {
 
   if (req.headers.authorization) {
     const token = req.headers.authorization.split(" ")[1];
-    const decoded = verifyToken(token);
+    const decoded = await verifyToken(token);
     if (!decoded) {
       return res.status(401).json({ error: "Invalid or expired token" });
     } else if (decoded.role !== "admin") {
@@ -376,7 +376,7 @@ router.post("/album", async (req, res) => {
 
   if (req.headers.authorization) {
     const token = req.headers.authorization.split(" ")[1];
-    const decoded = verifyToken(token);
+    const decoded = await verifyToken(token);
     if (!decoded) {
       return res.status(401).json({ error: "Invalid or expired token" });
     } else if (decoded.role !== "admin") {
@@ -456,7 +456,7 @@ router.delete("/album", async (req, res) => {
 
   if (req.headers.authorization) {
     const token = req.headers.authorization.split(" ")[1];
-    const decoded = verifyToken(token);
+    const decoded = await verifyToken(token);
     if (!decoded) {
       return res.status(401).json({ error: "Invalid or expired token" });
     } else if (decoded.role !== "admin") {

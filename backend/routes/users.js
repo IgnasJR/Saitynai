@@ -1,7 +1,7 @@
 import express from "express";
 import { postgres } from "../utils/db.js";
 import bcrypt from "bcrypt";
-import { generateToken } from "../utils/auth.js";
+import { generateToken, revokeToken } from "../utils/auth.js";
 
 const router = express.Router();
 router.use(express.json());
@@ -30,6 +30,23 @@ router.post("/login", async (req, res) => {
     console.error("Error logging in:", error);
     res.status(500).json({ error: "Internal server error" });
   }
+});
+
+router.post("/logout", (req, res) => {
+  const token = req.headers.authorization.split(" ")[1];
+
+  if (!token) {
+    return res.status(400).json({ error: "Token is required" });
+  }
+
+  revokeToken(token)
+    .then(() => {
+      res.json({ message: "Logged out successfully" });
+    })
+    .catch((error) => {
+      console.error("Error logging out:", error);
+      res.status(500).json({ error: "Internal server error" });
+    });
 });
 
 router.post("/register", async (req, res) => {

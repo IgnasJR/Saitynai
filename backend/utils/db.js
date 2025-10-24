@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import { createClient } from "redis";
 dotenv.config();
 
 import pkg from "pg";
@@ -14,3 +15,13 @@ export const postgres = new Pool({
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
 });
+
+export const redis = createClient({
+  url: process.env.REDIS_URL,
+});
+
+redis.on("error", (err) => {
+  console.error("Redis Client Error", err);
+});
+
+await redis.connect();
