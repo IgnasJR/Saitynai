@@ -1,7 +1,12 @@
 import express from "express";
 import { postgres } from "../utils/db.js";
 import bcrypt from "bcrypt";
-import { generateToken, revokeToken } from "../utils/auth.js";
+import {
+  generateTokens,
+  refreshTokens,
+  revokeRefreshToken,
+  verifyToken,
+} from "../utils/auth.js";
 
 const router = express.Router();
 router.use(express.json());
@@ -12,7 +17,7 @@ router.post("/login", async (req, res) => {
   try {
     const user = await postgres
       .query("SELECT * FROM users WHERE username = $1", [username])
-      .then((result) => result.rows[0]);
+      .then((res) => res.rows[0]);
 
     if (!user) {
       return res.status(401).json({ error: "Invalid credentials" });
@@ -23,41 +28,70 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    const token = generateToken(user.id, user.role);
+    const { accessToken, refreshToken } = await generateTokens(
+      user.id,
+      user.role
+    );
 
-    res.json({ token });
-  } catch (error) {
-    console.error("Error logging in:", error);
+    // ✅ store refresh token in http-only cookie
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true, // use true in production (HTTPS)
+      sameSite: "strict",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    res.json({ accessToken });
+  } catch (err) {
+    console.error("Error logging in:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });
 
-router.post("/logout", (req, res) => {
-  const token = req.headers.authorization.split(" ")[1];
+router.post("/logout", async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const refreshToken = req.cookies.refreshToken;
 
-  if (!token) {
-    return res.status(400).json({ error: "Token is required" });
-  }
+    if (!authHeader) {
+      return res.status(400).json({ error: "Authorization header missing" });
+    }
 
-  revokeToken(token)
-    .then(() => {
-      res.json({ message: "Logged out successfully" });
-    })
-    .catch((error) => {
-      console.error("Error logging out:", error);
-      res.status(500).json({ error: "Internal server error" });
+    if (!refreshToken) {
+      return res.status(400).json({ error: "Refresh token missing" });
+    }
+
+    const accessToken = authHeader.split(" ")[1];
+    const decoded = verifyToken(accessToken);
+
+    if (!decoded?.userId) {
+      return res.status(400).json({ error: "Invalid access token" });
+    }
+
+    await revokeRefreshToken(decoded.userId, refreshToken);
+
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      path: "/",
     });
+
+    res.json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.error("Error logging out:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 router.post("/register", async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    const existingUserResult = await postgres.query(
-      "SELECT * FROM users WHERE username = $1",
-      [username]
-    );
-    const existingUser = existingUserResult.rows[0];
+    const existingUser = await postgres
+      .query("SELECT id FROM users WHERE username = $1", [username])
+      .then((result) => result.rows[0]);
 
     if (existingUser) {
       return res.status(409).json({ error: "Username already exists" });
@@ -65,18 +99,42 @@ router.post("/register", async (req, res) => {
 
     const password_hash = await bcrypt.hash(password, 10);
 
-    const result = await postgres.query(
-      "INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id, username",
-      [username, password_hash]
-    );
-
-    const newUser = result.rows[0];
+    const newUser = await postgres
+      .query(
+        "INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id, username",
+        [username, password_hash]
+      )
+      .then((result) => result.rows[0]);
 
     res.status(201).json(newUser);
   } catch (error) {
     console.error("Error registering user:", error);
     res.status(500).json({ error: "Internal server error" });
   }
+});
+
+router.post("/refresh", async (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
+
+  if (!refreshToken) {
+    return res.status(401).json({ error: "Refresh token missing" });
+  }
+
+  const tokens = await refreshTokens(refreshToken);
+
+  if (!tokens) {
+    return res.status(401).json({ error: "Invalid refresh token" });
+  }
+
+  res.cookie("refreshToken", tokens.refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  res.json({ accessToken: tokens.accessToken });
 });
 
 export default router;
