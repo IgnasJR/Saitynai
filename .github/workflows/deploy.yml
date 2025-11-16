@@ -36,10 +36,10 @@ jobs:
           docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/tunefederate-backend:latest ./backend
           docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/tunefederate-backend:latest
 
-      - name: Build and push frontend
-        run: |
-          docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/tunefederate-frontend:latest ./frontend
-          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/tunefederate-frontend:latest
+      # - name: Build and push frontend
+      #   run: |
+      #     docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/tunefederate-frontend:latest ./frontend
+      #     docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/tunefederate-frontend:latest
 
   deploy:
     needs: build
