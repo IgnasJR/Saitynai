@@ -53,6 +53,6 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /path/to/your/app
+            cd /home/azureuser/Saitynai
             docker compose pull
             docker compose up -d --remove-orphans
