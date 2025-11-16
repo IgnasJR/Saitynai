@@ -523,6 +523,11 @@ router.patch("/artist/:id", async (req, res) => {
     )} WHERE id = $${idx} RETURNING *`;
 
     const result = await postgres.query(query, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Artist not found" });
+    }
+
     res.json(result.rows[0]);
   } catch (error) {
     console.error("Error updating artist:", error);

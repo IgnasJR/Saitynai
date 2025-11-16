@@ -19,6 +19,13 @@ app.use("/api", artistRoutes);
 app.use("/api", albumRoutes);
 app.use("/api", songRoutes);
 app.use("/api", userRoutes);
+
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ status: "ok", uptime: process.uptime() });
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+export default app;

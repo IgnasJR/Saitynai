@@ -391,6 +391,15 @@ router.post("/album", async (req, res) => {
   }
 
   try {
+    const artistExists = await postgres.query(
+      "SELECT id FROM artists WHERE id = $1",
+      [artist_id]
+    );
+
+    if (artistExists.rows.length === 0) {
+      return res.status(404).json({ error: "Artist not found" });
+    }
+
     const result = await postgres.query(
       `INSERT INTO albums (title, artist_id, release_date, mbid)
        VALUES ($1, $2, $3, $4) RETURNING *`,
