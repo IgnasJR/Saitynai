@@ -28,9 +28,7 @@ services:
       - "6379:6379"
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/ignasjr/tunefederate-backend:latest
     container_name: tune_backend
     restart: always
     depends_on:
@@ -44,12 +42,8 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       NODE_ENV: ${NODE_ENV}
       PORT: ${PORT}
-    volumes:
-      - ./backend:/app
-    working_dir: /app
     ports:
       - "${PORT}:${PORT}"
-    command: ["npm", "run", "start"]
     expose:
       - "${PORT}"
 
