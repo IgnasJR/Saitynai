@@ -7,6 +7,7 @@ import User from "./Models/User";
 import AlbumPage from "./Pages/AlbumPage";
 
 function App() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [user, setUser] = useState<User | null>(null);
 
   return (
