@@ -74,7 +74,7 @@ router.get("/album/:id", async (req, res) => {
   }
 
   try {
-    const result = await postgres.query(
+    const albumResult = await postgres.query(
       `SELECT albums.id, albums.mbid, albums.title, albums.release_date, artists.name as artist, albums.AlbumCoverLink as cover_url
        FROM albums 
        JOIN artists ON albums.artist_id = artists.id
@@ -82,11 +82,23 @@ router.get("/album/:id", async (req, res) => {
       [id]
     );
 
-    if (result.rows.length === 0) {
+    if (albumResult.rows.length === 0) {
       return res.status(404).send("Album not found");
     }
 
-    res.json(result.rows[0]);
+    const album = albumResult.rows[0];
+
+    const songsResult = await postgres.query(
+      `SELECT *
+       FROM songs
+       WHERE album_id = $1
+       ORDER BY track_number NULLS LAST, id`,
+      [id]
+    );
+
+    album.songs = songsResult.rows;
+
+    res.json(album);
   } catch (error) {
     console.error("Error fetching album from DB:", error);
     res.status(500).send("Internal Server Error");

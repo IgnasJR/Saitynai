@@ -33,16 +33,15 @@ router.post("/login", async (req, res) => {
       user.role
     );
 
-    // ✅ store refresh token in http-only cookie
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: true, // use true in production (HTTPS)
+      secure: true,
       sameSite: "strict",
       path: "/",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.json({ accessToken });
+    res.json({ accessToken, role: user.role });
   } catch (err) {
     console.error("Error logging in:", err);
     res.status(500).json({ error: "Internal server error" });

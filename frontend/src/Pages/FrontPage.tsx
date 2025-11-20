@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Spinner from "../Components/LoadingSpinner";
 import { Link } from "react-router";
+import Header from "../Components/Header";
 const imagePlaceholder = "../assets/placeholder.svg";
 
 interface Album {
@@ -53,9 +54,9 @@ export default function Frontpage() {
   if (error) return <div className="error-message">{error}</div>;
 
   return (
-    <div>
-      <h1>Music Albums</h1>
-      <div className="w-fit mx-auto grid grid-cols-1 lg:grid-cols-4 md:grid-cols-2 sm:grid-cols-1 justify-items-center justify-center gap-y-20 gap-x-14 mt-10 mb-5">
+    <>
+      <Header />
+      <div className="w-fit pt-10 mx-auto grid grid-cols-1 lg:grid-cols-4 md:grid-cols-2 sm:grid-cols-1 justify-items-center justify-center gap-y-20 gap-x-14 mt-10 mb-5">
         {albums.map((album) => (
           <Link to={`/album/${album.id}`} key={album.id} className="album-card">
             <div
@@ -75,6 +76,6 @@ export default function Frontpage() {
           </Link>
         ))}
       </div>
-    </div>
+    </>
   );
 }

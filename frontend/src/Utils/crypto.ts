@@ -1,14 +1,22 @@
 import CryptoJS from "crypto-js";
 import forge from "node-forge";
+import { href } from "react-router";
 
-const hashPassword = (username, password) => {
-  var algo = CryptoJS.algo.SHA256.create();
-  algo.update(password, "utf-8");
-  algo.update(CryptoJS.SHA256(username), "utf-8");
+const hashPassword = (username: string, password: string) => {
+  const algo = CryptoJS.algo.SHA256.create();
+  algo.update(password);
+  algo.update(CryptoJS.SHA256(username));
   return algo.finalize().toString(CryptoJS.enc.Base64);
 };
 
-const encryptKey = (message, publicKey) => {
+const getRefreshToken = () => {
+  const access = localStorage.getItem("accessToken");
+  if (!access) {
+    href("/login");
+  }
+};
+
+const encryptKey = (message: string, publicKey: string) => {
   try {
     const publicKeyObj = forge.pki.publicKeyFromPem(publicKey);
     const encrypted = forge.util.encode64(
@@ -22,7 +30,7 @@ const encryptKey = (message, publicKey) => {
   }
 };
 
-const decryptKey = (message, privateKey) => {
+const decryptKey = (message: string, privateKey: string) => {
   const privateKeyObj = forge.pki.privateKeyFromPem(privateKey);
   const decrypted = privateKeyObj.decrypt(
     forge.util.decode64(message),
@@ -34,7 +42,7 @@ const decryptKey = (message, privateKey) => {
   return decrypted;
 };
 
-const decryptPrivateKey = (privateKey, password) => {
+const decryptPrivateKey = (privateKey: string, password: string) => {
   try {
     const decryptedPrivateKey = CryptoJS.AES.decrypt(
       privateKey,
@@ -42,7 +50,7 @@ const decryptPrivateKey = (privateKey, password) => {
     ).toString(CryptoJS.enc.Utf8);
     return decryptedPrivateKey;
   } catch (error) {
-    return Error("Unable to decrypt password");
+    return Error("Unable to decrypt password" + error);
   }
 };
 
@@ -52,7 +60,7 @@ const generateAESkey = () => {
   return hexKey;
 };
 
-const encryptMessage = (message, aesKey) => {
+const encryptMessage = (message: string, aesKey: string) => {
   if (!aesKey) {
     throw new Error("AES key is required for encryption");
   }
@@ -60,7 +68,7 @@ const encryptMessage = (message, aesKey) => {
   return encrypted;
 };
 
-const decryptMessage = (encrypted, aesKey) => {
+const decryptMessage = (encrypted: string, aesKey: string) => {
   if (!aesKey) {
     throw new Error("AES key is required for decryption");
   }
