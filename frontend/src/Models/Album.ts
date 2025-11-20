@@ -7,6 +7,7 @@ export default class Album {
   cover_url: string;
   songs: Song[];
   mbid: string;
+  artist_id: string;
 
   constructor(
     id: string,
@@ -14,7 +15,8 @@ export default class Album {
     artist: string,
     cover_url: string,
     songs: Song[],
-    mbid: string
+    mbid: string,
+    artist_id: string
   ) {
     this.id = id;
     this.title = title;
@@ -22,5 +24,6 @@ export default class Album {
     this.cover_url = cover_url;
     this.songs = songs;
     this.mbid = mbid;
+    this.artist_id = artist_id;
   }
 }

@@ -75,7 +75,7 @@ router.get("/album/:id", async (req, res) => {
 
   try {
     const albumResult = await postgres.query(
-      `SELECT albums.id, albums.mbid, albums.title, albums.release_date, artists.name as artist, albums.AlbumCoverLink as cover_url
+      `SELECT albums.id, albums.mbid, albums.title, albums.release_date, artists.name as artist, artists.id as artist_id, albums.AlbumCoverLink as cover_url
        FROM albums 
        JOIN artists ON albums.artist_id = artists.id
        WHERE albums.id = $1`,

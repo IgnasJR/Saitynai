@@ -2,11 +2,14 @@ import { useState } from "react";
 import Spinner from "../Components/LoadingSpinner";
 import { setStorageItem } from "../Utils/localStorage";
 import Header from "../Components/Header";
+import { toast, ToastContainer } from "react-toastify";
+import { useNavigate } from "react-router";
 
 function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleLoginClick = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -25,9 +28,15 @@ function Login() {
       if (response.ok) {
         setStorageItem("accessToken", data.accessToken);
         setStorageItem("role", data.role);
-        window.location.href = "/";
+        navigate("/", { state: { toast: "Login successful!" } });
+      } else {
+        throw new Error(data.error);
       }
     } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Login failed", {
+        theme: "dark",
+        position: "bottom-right",
+      });
       console.error("Login error:", err);
     } finally {
       setIsLoading(false);
@@ -36,6 +45,7 @@ function Login() {
 
   return (
     <>
+      <ToastContainer />
       <Header />
       {isLoading && <Spinner />}
 

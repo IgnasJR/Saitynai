@@ -6,6 +6,7 @@ const formatDate = (date) => {
 
 const formatLength = (length) => {
   if (!length) return null;
+  if (typeof length === "number") return length;
   const parts = length.split(":").map(Number);
   if (parts.length === 2) {
     return parts[0] * 60 + parts[1];

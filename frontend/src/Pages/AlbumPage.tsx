@@ -3,11 +3,14 @@ import { useParams } from "react-router";
 import type Album from "../Models/Album";
 import LoadingSpinner from "../Components/LoadingSpinner";
 import Header from "../Components/Header";
+import SongEditModal from "../Components/SongEditModal";
+import { ToastContainer } from "react-toastify";
 
 export default function AlbumPage() {
   const { id } = useParams();
   const [album, setAlbum] = useState<Album | null>(null);
   const [loading, setLoading] = useState(true);
+  const [editingIndex, setEditingIndex] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAlbumDetails();
@@ -37,6 +40,22 @@ export default function AlbumPage() {
 
   return (
     <div className="">
+      <ToastContainer
+        position="bottom-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="dark"
+      />
+      <SongEditModal
+        isOpen={editingIndex !== null}
+        onClose={() => setEditingIndex(null)}
+        songId={editingIndex || undefined} // <-- use songId
+      />
+
       <Header />
       <div className="flex flex-col md:flex-row w-3/4 mx-auto gap-6 mt-4">
         {/* Album info */}
@@ -52,7 +71,14 @@ export default function AlbumPage() {
             <h1 className="text-2xl font-bold mt-4 text-center">
               {album.title}
             </h1>
-            <p className="text-2xl text-center">{album.artist}</p>
+            <p
+              className="text-2xl text-center"
+              onClick={() =>
+                (window.location.href = `/artist/${album.artist_id}`)
+              }
+            >
+              {album.artist}
+            </p>
           </div>
         </div>
 
@@ -66,7 +92,11 @@ export default function AlbumPage() {
                 const seconds = Math.floor((song.length % 60000) / 1000);
 
                 return (
-                  <tr key={song.id} className="h-6">
+                  <tr
+                    key={song.id}
+                    onClick={() => setEditingIndex(song.id)}
+                    className="h-6"
+                  >
                     <th className="p-2 text-left">{song.track_number}</th>
                     <td className="p-2">{song.title}</td>
                     <td className="p-2 text-right">
