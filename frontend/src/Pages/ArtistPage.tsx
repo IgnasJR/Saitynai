@@ -19,7 +19,7 @@ export default function ArtistPage() {
       setLoading(true);
       setError(null);
       const res = await fetch(`/api/artist/${artistId}`);
-      if (!res.ok) throw new Error("Failed to fetch artist");
+      if (!res.ok) window.location.href = "/404";
       const data = await res.json();
       setArtist(data);
     } catch (err: unknown) {
@@ -67,7 +67,8 @@ export default function ArtistPage() {
       if (!res.ok) throw new Error("Failed to delete artist");
 
       toast.success(`Artist "${artist.name}" deleted!`);
-      setArtist(null); // optional: redirect or clear page
+      setArtist(null);
+      window.location.href = "/";
     } catch (err: unknown) {
       console.error(err);
       toast.error(

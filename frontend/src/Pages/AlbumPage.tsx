@@ -22,8 +22,7 @@ export default function AlbumPage() {
     setLoading(true);
     try {
       const response = await fetch(`/api/album/${id}`);
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok) window.location.href = "/404";
       const data: Album = await response.json();
       setAlbum(data);
     } catch (error) {
@@ -32,9 +31,6 @@ export default function AlbumPage() {
       setLoading(false);
     }
   };
-
-  if (!album && !loading)
-    return <p className="text-center">Album not found.</p>;
   if (loading || !album) return <LoadingSpinner />;
 
   return (
