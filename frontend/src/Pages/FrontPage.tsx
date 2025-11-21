@@ -1,81 +1,106 @@
 import { useEffect, useState } from "react";
-import Spinner from "../Components/LoadingSpinner";
-import { Link } from "react-router";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Artist from "../Models/Artist";
+import ArtistModal from "../Components/ArtistModal";
 import Header from "../Components/Header";
-const imagePlaceholder = "../assets/placeholder.svg";
 
-interface Album {
-  id: string;
-  title: string;
-  artist: string;
-  cover_url: string;
-}
-
-export default function Frontpage() {
-  const [albums, setAlbums] = useState<Album[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+function Frontpage() {
+  const [artists, setArtists] = useState<Artist[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   useEffect(() => {
-    const fetchAlbums = async () => {
-      setIsLoading(true);
-      setError(null);
-
+    const fetchArtists = async () => {
       try {
-        const response = await fetch("/api/albums");
-        if (!response.ok)
-          throw new Error(`HTTP error! status: ${response.status}`);
+        const res = await fetch("/api/artists");
+        if (!res.ok) throw new Error("Failed to fetch frontpage artists");
 
-        const contentType = response.headers.get("content-type") || "";
-        if (!contentType.includes("application/json")) {
-          const text = await response.text();
-          throw new Error(
-            `Expected JSON response but received: ${
-              text || "non-JSON response"
-            }`
-          );
-        }
-
-        const data: Album[] = await response.json();
-        setAlbums(data);
+        const data: Artist[] = await res.json();
+        setArtists(data);
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : String(err);
-        setError(message || "Failed to load albums");
+        console.error("Error fetching frontpage artists:", err);
+        const message = err instanceof Error ? err.message : "Unknown error";
+        setError(message);
+        toast.error(`Error fetching artists: ${message}`);
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
-    fetchAlbums();
+    fetchArtists();
   }, []);
 
-  if (isLoading) return <Spinner />;
+  const handleCreateArtist = () => {
+    setIsModalOpen(true);
+  };
 
-  if (error) return <div className="error-message">{error}</div>;
+  const handleArtistSaved = (newArtistId: string) => {
+    toast.success("Artist saved successfully!");
+    setIsModalOpen(false);
+  };
+
+  const handleArtistSaveFailed = (message: string) => {
+    toast.error(`Failed to save artist: ${message}`);
+  };
+
+  if (loading)
+    return <p className="text-center mt-10">Loading artist information...</p>;
+  if (error) return <p className="text-red-500 text-center mt-10">{error}</p>;
+  if (artists.length === 0)
+    return <p className="text-center mt-10">No artists found.</p>;
 
   return (
     <>
+      <ToastContainer position="bottom-right" theme="dark" />
       <Header />
-      <div className="w-fit pt-10 mx-auto grid grid-cols-1 lg:grid-cols-4 md:grid-cols-2 sm:grid-cols-1 justify-items-center justify-center gap-y-20 gap-x-14 mt-10 mb-5">
-        {albums.map((album) => (
-          <Link to={`/album/${album.id}`} key={album.id} className="album-card">
-            <div
-              key={album.id}
-              className="w-72 bg-white shadow-md rounded-xl duration-500 hover:scale-105 hover:shadow-xl"
+      <ArtistModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSaved={handleArtistSaved}
+        onError={handleArtistSaveFailed}
+      />
+
+      <div className="w-3/4 mx-auto mt-10 pt-10">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold text-white">Artists</h1>
+          {localStorage.getItem("role") === "admin" && (
+            <button
+              onClick={handleCreateArtist}
+              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded flex items-center gap-1"
             >
-              <img
-                src={album.cover_url ? album.cover_url : imagePlaceholder}
-                alt={album.title}
-                className="album-cover"
-              />
-              <div className="album-info">
-                <h2 className="album-title">{album.title}</h2>
-                <p className="album-artist">{album.artist}</p>
-              </div>
-            </div>
-          </Link>
-        ))}
+              <span className="text-xl font-bold">+</span> Create Artist
+            </button>
+          )}
+        </div>
+
+        <table className="w-full border-collapse text-left text-white">
+          <thead>
+            <tr className="bg-gray-800">
+              <th className="p-3">ID</th>
+              <th className="p-3">Name</th>
+              <th className="p-3">MBID</th>
+            </tr>
+          </thead>
+          <tbody>
+            {artists.map((artist) => (
+              <tr
+                onClick={() => (window.location.href = `/artist/${artist.id}`)}
+                key={artist.id}
+                className="hover:bg-gray-700 transition-colors cursor-pointer"
+              >
+                <td className="p-3">{artist.id}</td>
+                <td className="p-3">{artist.name}</td>
+                <td className="p-3">{artist.mbid || "N/A"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </>
   );
 }
+
+export default Frontpage;

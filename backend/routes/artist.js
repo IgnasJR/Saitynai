@@ -99,23 +99,33 @@ router.get("/artists", async (req, res) => {
 
 router.get("/artist/:id", async (req, res) => {
   const { id } = req.params;
-  console.log(id);
 
   try {
-    const result = await postgres.query(
+    const artistResult = await postgres.query(
       `SELECT id, mbid, name
        FROM artists
        WHERE id = $1`,
       [id]
     );
 
-    if (result.rows.length === 0) {
+    if (artistResult.rows.length === 0) {
       return res.status(404).json({ message: "Artist not found" });
     }
 
-    res.json(result.rows[0]);
+    const albumsResult = await postgres.query(
+      `SELECT id, title, release_date
+       FROM albums
+       WHERE artist_id = $1
+       ORDER BY release_date`,
+      [id]
+    );
+
+    const artist = artistResult.rows[0];
+    artist.albums = albumsResult.rows;
+
+    res.json(artist);
   } catch (error) {
-    console.error("Error fetching artist from DB:", error);
+    console.error("Error fetching artist and albums from DB:", error);
     res.status(500).send("Internal Server Error");
   }
 });

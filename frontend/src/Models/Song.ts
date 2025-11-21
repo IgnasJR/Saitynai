@@ -5,6 +5,7 @@ export default class Song {
   track_number: number;
   length: number;
   album: string;
+  album_id: string;
   artist: string;
 
   constructor(
@@ -14,6 +15,7 @@ export default class Song {
     track_number: number,
     length: number,
     album: string,
+    album_id: string,
     artist: string
   ) {
     this.id = id;
@@ -23,5 +25,6 @@ export default class Song {
     this.length = length;
     this.album = album;
     this.artist = artist;
+    this.album_id = album_id;
   }
 }

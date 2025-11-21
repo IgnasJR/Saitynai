@@ -96,6 +96,12 @@ function Login() {
             >
               Sign in
             </button>
+            <button
+              className="flex w-full justify-center rounded-md bg-indigo-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-400"
+              onClick={() => navigate("/register")}
+            >
+              Sign Up
+            </button>
           </form>
         </div>
       </div>

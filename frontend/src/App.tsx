@@ -4,6 +4,8 @@ import Login from "./Pages/Login";
 import FrontPage from "./Pages/FrontPage";
 import AlbumPage from "./Pages/AlbumPage";
 import Header from "./Components/Header";
+import ArtistPage from "./Pages/ArtistPage";
+import Register from "./Pages/Register";
 
 function App() {
   return (
@@ -11,8 +13,9 @@ function App() {
       <Routes>
         <Route path="/" element={<FrontPage />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<div>yo</div>} />
+        <Route path="/register" element={<Register />} />
         <Route path="/album/:id" element={<AlbumPage />} />
+        <Route path="/artist/:artistId" element={<ArtistPage />} />
         <Route
           path="*"
           element={
