@@ -69,26 +69,35 @@ export default function AlbumPage() {
       <Header />
 
       <div className="flex flex-col md:flex-row w-3/4 mx-auto gap-6 mt-4 pt-12 md:pt-0">
-        {/* Album info */}
         <div className="shrink-0 md:w-1/2 flex justify-center pt-10">
           <div className="flex flex-col items-center max-h-[80vh]">
-            <div className="w-3/4 aspect-square">
-              <img
-                src={album.cover_url ? album.cover_url : placeHolderImage}
-                alt={album.title}
-                className="w-full h-full object-cover rounded-lg"
-              />
+            <div className="w-3/4 aspect-square rounded-lg overflow-hidden bg-gray-700">
+              {loading ? (
+                <div className="w-full h-full flex items-center justify-center">
+                  <LoadingSpinner />
+                </div>
+              ) : (
+                <img
+                  src={album?.cover_url || placeHolderImage}
+                  alt={album?.title}
+                  className="w-full h-full object-cover rounded-lg"
+                />
+              )}
             </div>
-            <h1 className="text-2xl font-bold mt-4 text-center">
-              {album.title}
+
+            <h1 className="text-2xl font-bold mt-4 text-center text-white">
+              {loading ? "Loading..." : album?.title}
             </h1>
             <p
-              className="text-2xl text-center cursor-pointer"
+              className={`text-2xl text-center cursor-pointer ${
+                loading ? "bg-gray-600 animate-pulse" : ""
+              }`}
               onClick={() =>
-                (window.location.href = `/artist/${album.artist_id}`)
+                !loading &&
+                (window.location.href = `/artist/${album?.artist_id}`)
               }
             >
-              {album.artist}
+              {loading ? "Loading artist..." : album?.artist}
             </p>
           </div>
         </div>
