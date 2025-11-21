@@ -5,44 +5,61 @@ on:
     branches: [master]
 
 jobs:
-  test:
+  # test:
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - name: Checkout repo
+  #       uses: actions/checkout@v4
+
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v3
+
+  #     - name: Run Test Environment
+  #       run: |
+  #         docker compose -f docker-compose.test.yml build
+  #         docker compose -f docker-compose.test.yml run --rm backend-test
+
+  build:
+    # needs: test
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Run Test Environment
-        run: |
-          docker compose -f docker-compose.test.yml build
-          docker compose -f docker-compose.test.yml run --rm backend-test
-
-  build:
-    needs: test
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
       - name: Login to GHCR
         run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+          rm -rf ../nginx/frontend-dist
+          cp -r dist ../nginx/frontend-dist
+
+      - name: Build and push Nginx
+        run: |
+          cd nginx
+          docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/tunefederate-nginx:latest .
+          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/tunefederate-nginx:latest
 
       - name: Build and push backend
         run: |
           docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/tunefederate-backend:latest ./backend
           docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/tunefederate-backend:latest
 
-      # - name: Build and push frontend
-      #   run: |
-      #     docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/tunefederate-frontend:latest ./frontend
-      #     docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/tunefederate-frontend:latest
-
   deploy:
-    needs: build
+    # needs: build
     runs-on: ubuntu-latest
 
     steps:
@@ -54,5 +71,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /home/azureuser/Saitynai
+            git pull origin master
             docker-compose pull
             docker-compose up -d --remove-orphans

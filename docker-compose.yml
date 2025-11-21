@@ -1,4 +1,4 @@
-version: "3.9"
+version: "3.8"
 
 services:
   postgres:
@@ -48,7 +48,7 @@ services:
       - "${PORT}"
 
   nginx:
-    image: nginx:latest
+    image: ghcr.io/ignasjr/tunefederate-nginx:latest
     container_name: tune_nginx
     restart: always
     depends_on:
