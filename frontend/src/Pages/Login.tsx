@@ -1,7 +1,6 @@
 import { useState } from "react";
 import Spinner from "../Components/LoadingSpinner";
 import { setStorageItem } from "../Utils/localStorage";
-import Header from "../Components/Header";
 import { toast, ToastContainer } from "react-toastify";
 import { useNavigate } from "react-router";
 
@@ -46,7 +45,6 @@ function Login() {
   return (
     <>
       <ToastContainer />
-      <Header />
       {isLoading && <Spinner />}
 
       <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">

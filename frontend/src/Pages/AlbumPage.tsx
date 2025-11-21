@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import type Album from "../Models/Album";
 import LoadingSpinner from "../Components/LoadingSpinner";
-import Header from "../Components/Header";
 import SongModal from "../Components/SongModal";
 import { ToastContainer, toast } from "react-toastify";
 import placeHolderImage from "../assets/placeholder.svg";
@@ -59,12 +58,10 @@ export default function AlbumPage() {
         isOpen={creatingSong}
         onClose={() => setCreatingSong(false)}
         onSaved={fetchAlbumDetails}
-        albumId={album?.id} // pass current album id for creation
+        albumId={album?.id}
       />
 
-      <Header />
-
-      <div className="flex flex-col md:flex-row w-3/4 mx-auto gap-6 mt-4 pt-12 md:pt-0">
+      <div className="flex flex-col md:flex-row w-3/4 mx-auto gap-6 mt-4">
         <div className="shrink-0 md:w-1/2 flex justify-center pt-10">
           <div className="flex flex-col items-center max-h-[80vh]">
             <div className="w-3/4 aspect-square rounded-lg overflow-hidden bg-gray-700">

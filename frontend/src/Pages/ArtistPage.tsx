@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router";
-import Header from "../Components/Header";
 import { ToastContainer, toast } from "react-toastify";
 import AlbumModal from "../Components/AlbumModal";
 import type Artist from "../Models/Artist";
@@ -97,8 +96,6 @@ export default function ArtistPage() {
         }}
         onSaved={fetchArtist}
       />
-
-      <Header />
 
       <div className="flex flex-col md:flex-row w-3/4 mx-auto gap-6 mt-4 pt-12 md:pt-0">
         <div className="shrink-0 md:w-1/3 flex flex-col items-center">

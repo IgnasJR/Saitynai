@@ -3,7 +3,6 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Artist from "../Models/Artist";
 import ArtistModal from "../Components/ArtistModal";
-import Header from "../Components/Header";
 
 function Frontpage() {
   const [artists, setArtists] = useState<Artist[]>([]);
@@ -55,7 +54,6 @@ function Frontpage() {
   return (
     <>
       <ToastContainer position="bottom-right" theme="dark" />
-      <Header />
       <ArtistModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
