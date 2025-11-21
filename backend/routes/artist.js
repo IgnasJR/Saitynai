@@ -74,12 +74,12 @@ router.get("/artists", async (req, res) => {
   try {
     if (!name) {
       result = await postgres.query(
-        `SELECT id, mbid, name
+        `SELECT id, mbid, name, country, founded, disbanded
          FROM artists`
       );
     } else {
       result = await postgres.query(
-        `SELECT id, mbid, name
+        `SELECT id, mbid, name, country, founded, disbanded
          FROM artists
          WHERE LOWER(name) LIKE $1`,
         [`%${name.toLowerCase()}%`]
@@ -484,7 +484,7 @@ router.post("/artist", async (req, res) => {
 
 router.patch("/artist/:id", async (req, res) => {
   const { id } = req.params;
-  const { name, country, founded, disbanded } = req.body;
+  const { name, country, founded, disbanded, mbid } = req.body;
 
   if (req.headers.authorization) {
     const token = req.headers.authorization.split(" ")[1];
@@ -524,6 +524,16 @@ router.patch("/artist/:id", async (req, res) => {
     if (disbanded) {
       fields.push(`disbanded = $${idx++}`);
       values.push(disbanded);
+    }
+    if (mbid) {
+      fields.push(`mbid = $${idx++}`);
+      values.push(mbid);
+    }
+
+    if (fields.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "At least one field must be provided for update" });
     }
 
     values.push(id);

@@ -21,11 +21,9 @@ function App() {
         <Route
           path="*"
           element={
-            <Layout>
-              <div className="flex items-center justify-center h-screen text-5xl">
-                404 — Page not found
-              </div>
-            </Layout>
+            <div className="flex items-center justify-center h-screen text-5xl">
+              404 — Page not found
+            </div>
           }
         />
       </Routes>

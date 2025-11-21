@@ -18,11 +18,11 @@ export default function ArtistModal({
   onSaved,
   onError,
 }: ArtistModalProps) {
-  const [artist, setArtist] = useState<Artist>({ id: 0, name: "", mbid: "" });
+  const [artist, setArtist] = useState<Artist>({ id: "0", name: "", mbid: "" });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!isOpen) return setArtist({ id: 0, name: "", mbid: "" });
+    if (!isOpen) return setArtist({ id: "0", name: "", mbid: "" });
     if (!artistId) return;
 
     const fetchArtist = async () => {
@@ -77,7 +77,7 @@ export default function ArtistModal({
 
     const saveArtist = async () => {
       let token = localStorage.getItem("accessToken") || "";
-      const url = artistId ? `/api/artist?id=${artistId}` : "/api/artist";
+      const url = artistId ? `/api/artist/${artistId}` : "/api/artist";
       const method = artistId ? "PATCH" : "POST";
 
       const sendRequest = async () =>

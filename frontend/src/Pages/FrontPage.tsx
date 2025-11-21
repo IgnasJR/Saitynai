@@ -10,6 +10,9 @@ function Frontpage() {
   const [error, setError] = useState<string | null>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingArtistId, setEditingArtistId] = useState<string | undefined>(
+    undefined
+  );
 
   useEffect(() => {
     const fetchArtists = async () => {
@@ -20,7 +23,6 @@ function Frontpage() {
         const data: Artist[] = await res.json();
         setArtists(data);
       } catch (err: unknown) {
-        console.error("Error fetching frontpage artists:", err);
         const message = err instanceof Error ? err.message : "Unknown error";
         setError(message);
         toast.error(`Error fetching artists: ${message}`);
@@ -32,17 +34,29 @@ function Frontpage() {
     fetchArtists();
   }, []);
 
-  const handleCreateArtist = () => {
+  const openCreateArtist = () => {
+    setEditingArtistId(undefined);
     setIsModalOpen(true);
   };
 
-  const handleArtistSaved = (newArtistId: string) => {
-    toast.success("Artist saved successfully!");
-    setIsModalOpen(false);
+  const openEditArtist = (artistId: string) => {
+    setEditingArtistId(artistId);
+    setIsModalOpen(true);
   };
 
-  const handleArtistSaveFailed = (message: string) => {
-    toast.error(`Failed to save artist: ${message}`);
+  const handleArtistSaved = () => {
+    const updateList = async () => {
+      try {
+        const res = await fetch("/api/artists");
+        if (!res.ok) throw new Error("Failed to refresh artist list");
+        const data: Artist[] = await res.json();
+        setArtists(data);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Unknown error";
+        toast.error(`Failed to refresh artists: ${msg}`);
+      }
+    };
+    updateList();
   };
 
   if (loading)
@@ -54,48 +68,82 @@ function Frontpage() {
   return (
     <>
       <ToastContainer position="bottom-right" theme="dark" />
+
       <ArtistModal
+        artistId={editingArtistId}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSaved={handleArtistSaved}
-        onError={handleArtistSaveFailed}
       />
 
-      <div className="w-3/4 mx-auto mt-10 pt-10">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold text-white">Artists</h1>
+      <div className="w-11/12 md:w-4/5 mx-auto mt-10 pt-10">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-4">
+          <h1 className="text-xl md:text-2xl font-bold text-white mb-4 md:mb-0">
+            Artists
+          </h1>
+
           {localStorage.getItem("role") === "admin" && (
             <button
-              onClick={handleCreateArtist}
-              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded flex items-center gap-1"
+              onClick={openCreateArtist}
+              className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded flex items-center gap-1"
             >
-              <span className="text-xl font-bold">+</span> Create Artist
+              <span className="text-lg md:text-xl font-bold">+</span> Create
+              Artist
             </button>
           )}
         </div>
 
-        <table className="w-full border-collapse text-left text-white">
-          <thead>
-            <tr className="bg-gray-800">
-              <th className="p-3">ID</th>
-              <th className="p-3">Name</th>
-              <th className="p-3">MBID</th>
-            </tr>
-          </thead>
-          <tbody>
-            {artists.map((artist) => (
-              <tr
-                onClick={() => (window.location.href = `/artist/${artist.id}`)}
-                key={artist.id}
-                className="hover:bg-gray-700 transition-colors cursor-pointer"
-              >
-                <td className="p-3">{artist.id}</td>
-                <td className="p-3">{artist.name}</td>
-                <td className="p-3">{artist.mbid || "N/A"}</td>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-left text-white">
+            <thead>
+              <tr className="bg-gray-800">
+                <th className="p-3">ID</th>
+                <th className="p-3">Name</th>
+                <th className="p-3">MBID</th>
+                <th className="p-3">Country</th>
+                <th className="p-3">Founded</th>
+                <th className="p-3">Disbanded</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {artists.map((artist) => (
+                <tr
+                  key={artist.id}
+                  className="hover:bg-gray-700 transition-colors cursor-pointer group"
+                  onClick={(e) => {
+                    if ((e.target as HTMLElement).tagName !== "BUTTON") {
+                      window.location.href = `/artist/${artist.id}`;
+                    }
+                  }}
+                >
+                  <td className="p-3">{artist.id}</td>
+                  <td className="p-3">{artist.name}</td>
+                  <td className="p-3">{artist.mbid || "N/A"}</td>
+                  <td className="p-3">{artist.country || "N/A"}</td>
+                  <td className="p-3">
+                    {artist.founded
+                      ? new Date(artist.founded).toLocaleDateString()
+                      : "N/A"}
+                  </td>
+                  <td className="p-3">
+                    {artist.disbanded
+                      ? new Date(artist.disbanded).toLocaleDateString()
+                      : "N/A"}
+                  </td>
+                  <td className="p-3 relative">
+                    <button
+                      onClick={() => openEditArtist(artist.id)}
+                      className="bg-blue-600 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 absolute right-2 top-1/2 transform -translate-y-1/2 transition-opacity"
+                    >
+                      Modify
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </>
   );

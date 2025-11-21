@@ -1,19 +1,11 @@
 import CryptoJS from "crypto-js";
 import forge from "node-forge";
-import { href } from "react-router";
 
 const hashPassword = (username: string, password: string) => {
   const algo = CryptoJS.algo.SHA256.create();
   algo.update(password);
   algo.update(CryptoJS.SHA256(username));
   return algo.finalize().toString(CryptoJS.enc.Base64);
-};
-
-const getRefreshToken = () => {
-  const access = localStorage.getItem("accessToken");
-  if (!access) {
-    href("/login");
-  }
 };
 
 const encryptKey = (message: string, publicKey: string) => {

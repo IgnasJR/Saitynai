@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { ToastContainer, toast } from "react-toastify";
 import AlbumModal from "../Components/AlbumModal";
