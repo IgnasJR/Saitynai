@@ -5,23 +5,23 @@ on:
     branches: [master]
 
 jobs:
-  # test:
-  #   runs-on: ubuntu-latest
+  test:
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     - name: Checkout repo
-  #       uses: actions/checkout@v4
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-  #     - name: Run Test Environment
-  #       run: |
-  #         docker compose -f docker-compose.test.yml build
-  #         docker compose -f docker-compose.test.yml run --rm backend-test
+      - name: Run Test Environment
+        run: |
+          docker compose -f docker-compose.test.yml build
+          docker compose -f docker-compose.test.yml run --rm backend-test
 
   build:
-    # needs: test
+    needs: test
     runs-on: ubuntu-latest
 
     steps:

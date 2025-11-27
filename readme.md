@@ -18,8 +18,10 @@ POSTGRES_HOST=postgres
 
 # Backend
 PORT=3001
-JWT_SECRET=
-NODE_ENV=development
+JWT_ACCESS_SECRET=
+JWT_REFRESH_SECRET=
+NODE_ENV=production
+
 ```
 
 3. Run `docker compose up` or `docker-compose up`.

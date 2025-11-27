@@ -103,6 +103,9 @@ function Frontpage() {
                 <th className="p-3">Country</th>
                 <th className="p-3">Founded</th>
                 <th className="p-3">Disbanded</th>
+                {localStorage.getItem("role") === "admin" && (
+                  <th className="p-3">Actions</th>
+                )}
               </tr>
             </thead>
 
@@ -131,14 +134,16 @@ function Frontpage() {
                       ? new Date(artist.disbanded).toLocaleDateString()
                       : "N/A"}
                   </td>
-                  <td className="p-3 relative">
-                    <button
-                      onClick={() => openEditArtist(artist.id)}
-                      className="bg-blue-600 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 absolute right-2 top-1/2 transform -translate-y-1/2 transition-opacity"
-                    >
-                      Modify
-                    </button>
-                  </td>
+                  {localStorage.getItem("role") === "admin" && (
+                    <td className="p-3">
+                      <button
+                        onClick={() => openEditArtist(artist.id)}
+                        className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded"
+                      >
+                        Edit
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
