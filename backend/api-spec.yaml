@@ -1,0 +1,675 @@
+openapi: 3.0.3
+info:
+  title: TuneRecommend
+  version: 1.0.0
+
+paths:
+  /api/album/{id}:
+    get:
+      summary: Get album by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Album object with songs
+          content:
+            application/json:
+              example:
+                id: 1
+                mbid: "some-mbid"
+                title: "Album Title"
+                release_date: "2024-01-01"
+                artist: "Artist Name"
+                artist_id: 5
+                cover_url: "https://example.com/cover.jpg"
+                songs:
+                  - id: 11
+                    title: "Song A"
+                    track_number: 1
+                  - id: 12
+                    title: "Song B"
+                    track_number: 2
+        "400":
+          description: Missing album ID
+        "404":
+          description: Album not found
+        "500":
+          description: Server error
+
+  /api/album:
+    patch:
+      summary: Update an album
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              title: "New Album Title"
+              release_date: "2024-02-02"
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Updated album
+          content:
+            application/json:
+              example:
+                id: 1
+                title: "New Album Title"
+                release_date: "2024-02-02"
+        "400":
+          description: No fields to update
+        "401":
+          description: Missing or invalid token
+        "403":
+          description: Insufficient permissions
+        "404":
+          description: Album not found
+        "500":
+          description: Server error
+
+    post:
+      summary: Create an album
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              title: "New Album"
+              artist_id: 5
+              release_date: "2024-01-01"
+              mbid: "some-mbid"
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Album created
+          content:
+            application/json:
+              example:
+                id: 10
+                title: "New Album"
+                artist_id: 5
+                release_date: "2024-01-01"
+                mbid: "some-mbid"
+        "400":
+          description: Missing required fields
+        "401":
+          description: Missing or invalid token
+        "403":
+          description: Insufficient permissions
+        "404":
+          description: Artist not found
+        "500":
+          description: Server error
+
+    delete:
+      summary: Delete an album and its songs
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Album deleted
+          content:
+            application/json:
+              example:
+                message: "Album and associated songs deleted"
+        "400":
+          description: Missing album ID
+        "401":
+          description: Missing or invalid token
+        "403":
+          description: Insufficient permissions
+        "404":
+          description: Album not found
+        "500":
+          description: Server error
+  /api/album/{id}:
+    get:
+      summary: Get album by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Album object with songs
+          content:
+            application/json:
+              example:
+                id: 1
+                mbid: "some-mbid"
+                title: "Album Title"
+                release_date: "2024-01-01"
+                artist: "Artist Name"
+                artist_id: 5
+                cover_url: "https://example.com/cover.jpg"
+                songs:
+                  - id: 11
+                    title: "Song A"
+                    track_number: 1
+                  - id: 12
+                    title: "Song B"
+                    track_number: 2
+        "400":
+          description: Missing album ID
+        "404":
+          description: Album not found
+        "500":
+          description: Server error
+
+  /api/album:
+    patch:
+      summary: Update an album
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              title: "New Album Title"
+              release_date: "2024-02-02"
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Updated album
+          content:
+            application/json:
+              example:
+                id: 1
+                title: "New Album Title"
+                release_date: "2024-02-02"
+        "400":
+          description: No fields to update
+        "401":
+          description: Missing or invalid token
+        "403":
+          description: Insufficient permissions
+        "404":
+          description: Album not found
+        "500":
+          description: Server error
+
+    post:
+      summary: Create an album
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              title: "New Album"
+              artist_id: 5
+              release_date: "2024-01-01"
+              mbid: "some-mbid"
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Album created
+          content:
+            application/json:
+              example:
+                id: 10
+                title: "New Album"
+                artist_id: 5
+                release_date: "2024-01-01"
+                mbid: "some-mbid"
+        "400":
+          description: Missing required fields
+        "401":
+          description: Missing or invalid token
+        "403":
+          description: Insufficient permissions
+        "404":
+          description: Artist not found
+        "500":
+          description: Server error
+
+    delete:
+      summary: Delete an album and its songs
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Album deleted
+          content:
+            application/json:
+              example:
+                message: "Album and associated songs deleted"
+        "400":
+          description: Missing album ID
+        "401":
+          description: Missing or invalid token
+        "403":
+          description: Insufficient permissions
+        "404":
+          description: Album not found
+        "500":
+          description: Server error
+  /api/artists:
+    get:
+      summary: Get list of artists (optional search by name)
+      parameters:
+        - name: name
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of artists
+          content:
+            application/json:
+              example:
+                - id: 1
+                  mbid: "mbid-1"
+                  name: "Artist One"
+                  country: "USA"
+                  founded: "2000-01-01"
+                  disbanded: null
+                - id: 2
+                  mbid: "mbid-2"
+                  name: "Artist Two"
+                  country: "UK"
+                  founded: "1995-05-05"
+                  disbanded: "2005-06-06"
+        "404":
+          description: No artists found
+        "500":
+          description: Server error
+
+  /api/artist/{id}:
+    get:
+      summary: Get artist by ID with their albums
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Artist object with albums
+          content:
+            application/json:
+              example:
+                id: 1
+                mbid: "mbid-1"
+                name: "Artist One"
+                albums:
+                  - id: 10
+                    title: "Album A"
+                    release_date: "2024-01-01"
+                  - id: 11
+                    title: "Album B"
+                    release_date: "2025-01-01"
+        "404":
+          description: Artist not found
+        "500":
+          description: Server error
+
+    patch:
+      summary: Update artist by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              name: "Updated Artist"
+              country: "USA"
+              founded: "2000-01-01"
+              disbanded: null
+              mbid: "new-mbid"
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Updated artist
+          content:
+            application/json:
+              example:
+                id: 1
+                name: "Updated Artist"
+                country: "USA"
+                founded: "2000-01-01"
+                disbanded: null
+                mbid: "new-mbid"
+        "400":
+          description: No fields to update
+        "401":
+          description: Missing or invalid token
+        "403":
+          description: Insufficient permissions
+        "404":
+          description: Artist not found
+        "500":
+          description: Server error
+
+  /api/artist:
+    post:
+      summary: Create a new artist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              name: "New Artist"
+              country: "USA"
+              founded: "2020-01-01"
+              disbanded: null
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Artist created
+          content:
+            application/json:
+              example:
+                id: 3
+                name: "New Artist"
+                country: "USA"
+                founded: "2020-01-01"
+                disbanded: null
+        "400":
+          description: Missing 'name' in request
+        "401":
+          description: Missing or invalid token
+        "403":
+          description: Insufficient permissions
+        "409":
+          description: Artist already exists
+        "500":
+          description: Server error
+
+    delete:
+      summary: Delete artist and associated albums/songs
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Artist deleted
+          content:
+            application/json:
+              example:
+                message: "Artist deleted successfully"
+                artist:
+                  id: 1
+                  name: "Artist One"
+        "401":
+          description: Missing or invalid token
+        "403":
+          description: Insufficient permissions
+        "404":
+          description: Artist not found
+        "500":
+          description: Server error
+
+  /api/artist_album:
+    get:
+      summary: Get albums and songs for a given artist or album
+      parameters:
+        - name: artist_id
+          in: query
+          schema:
+            type: integer
+        - name: album_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Albums with songs
+          content:
+            application/json:
+              example:
+                - album_id: 10
+                  album_title: "Album A"
+                  release_date: "2024-01-01"
+                  artist: "Artist One"
+                  songs:
+                    - id: 101
+                      title: "Song A1"
+                      track_number: 1
+                    - id: 102
+                      title: "Song A2"
+                      track_number: 2
+        "400":
+          description: Missing artist_id or album_id
+        "404":
+          description: No albums found
+        "500":
+          description: Server error
+  /api/song/{id}:
+    get:
+      summary: Get song by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Song object
+          content:
+            application/json:
+              example:
+                id: 1
+                mbid: "song-mbid"
+                title: "Song Title"
+                length: "03:45"
+                track_number: 1
+                album: "Album Name"
+                artist: "Artist Name"
+        "400":
+          description: Song ID is required
+        "404":
+          description: Song not found
+        "500":
+          description: Server error
+
+  /api/songs:
+    get:
+      summary: Get list of songs (with optional filtering)
+      parameters:
+        - name: title
+          in: query
+          schema:
+            type: string
+        - name: artist
+          in: query
+          schema:
+            type: string
+        - name: album
+          in: query
+          schema:
+            type: string
+        - name: id
+          in: query
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+      responses:
+        "200":
+          description: List of songs
+          content:
+            application/json:
+              example:
+                - id: 11
+                  mbid: "mbid-11"
+                  title: "Song A"
+                  album: "Album A"
+                  artist: "Artist X"
+                - id: 12
+                  mbid: "mbid-12"
+                  title: "Song B"
+                  album: "Album B"
+                  artist: "Artist Y"
+        "400":
+          description: Limit cannot exceed 500
+        "500":
+          description: Server error
+
+  /api/song:
+    patch:
+      summary: Update a song
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              title: "Updated Song Title"
+              length: "4:22"
+              track_number: 3
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Updated song
+          content:
+            application/json:
+              example:
+                id: 1
+                title: "Updated Song Title"
+                length: "262"
+                track_number: 3
+        "400":
+          description: No fields to update
+        "401":
+          description: Missing or invalid token
+        "403":
+          description: Insufficient permissions
+        "404":
+          description: Song not found
+        "500":
+          description: Server error
+
+    post:
+      summary: Create a new song
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              title: "New Song"
+              album_id: 10
+              length: "03:55"
+              track_number: 2
+              mbid: "new-mbid"
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Song created
+          content:
+            application/json:
+              example:
+                id: 50
+                title: "New Song"
+                album_id: 10
+                length: "235"
+                track_number: 2
+                mbid: "new-mbid"
+        "400":
+          description: Missing required fields or invalid album_id
+        "401":
+          description: Missing or invalid token
+        "403":
+          description: Insufficient permissions
+        "409":
+          description: Song with this MBID already exists
+        "500":
+          description: Server error
+
+    delete:
+      summary: Delete a song
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Song deleted
+          content:
+            application/json:
+              example:
+                message: "Song deleted"
+                song:
+                  id: 1
+                  title: "Deleted Song"
+                  album_id: 10
+        "401":
+          description: Missing or invalid token
+        "403":
+          description: Insufficient permissions
+        "404":
+          description: Song not found
+        "500":
+          description: Server error
+
+
+securitySchemes:
+  bearerAuth:
+    type: http
+    scheme: bearer
+    bearerFormat: JWT

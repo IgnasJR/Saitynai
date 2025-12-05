@@ -1,24 +1,8 @@
-import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
+import YAML from "yamljs";
 
-const options = {
-  definition: {
-    openapi: "3.0.3",
-    info: {
-      title: "TuneRate API",
-      version: "1.0.0",
-    },
-    servers: [
-      {
-        url: "http://localhost:3001/api",
-      },
-    ],
-  },
-  apis: ["./routes/*.js"],
-};
-
-const swaggerSpec = swaggerJSDoc(options);
+const swaggerDocument = YAML.load("./api-spec.yaml");
 
 export const setupSwagger = (app) => {
-  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 };
